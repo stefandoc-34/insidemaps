@@ -22,7 +22,7 @@ router.post('/images', multipleUpload, uploadController.postUpload);
 router.get('/images/:imageid', uploadController.getResizedImage);
 router.put('/images/:imageid', uploadController.putResizedImage);
 
-router.post('/status', statusController.updateStatus);
-router.get('/status', statusController.getStatus);
+router.post('/status/:imageid', statusController.updateStatus);
+router.get('/status/:imageid', statusController.getStatus);
 
 module.exports = router;

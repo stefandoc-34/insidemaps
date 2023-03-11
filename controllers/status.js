@@ -20,6 +20,7 @@ module.exports.getStatus = (req, res, next) => {
 };
 
 module.exports.updateStatus  = (req, res, next) => {
+    //for external updating of status
     res.status(200).json({message: 'Update status - still working'});
 };
 

@@ -28,17 +28,63 @@ function hideAllPages() {
     }
 };
 
+const resolved = 'Resolved image';
+const nonResolved = 'Not resolved';
+
 async function loadImage(refreshIntervalId){
+    const imageid = localStorage.getItem("imageid");
 	console.log('Image id is' + imageid);
-	url = "http://127.0.0.1:3123/api/images/" + imageid;
-	console.log('url :' + url);
-    const response = await fetch(url, 
+	const urlGetImage = "http://127.0.0.1:3123/api/images/" + imageid;
+	console.log('url : ' + urlGetImage);
+    const response = fetch(urlGetImage, 
         {
             nethod: "GET",
-            headers: {"Content-Type": "application/json"}
-        });
-    console.log(response);
-    let imageUrl = response.json.imageUrl;
+           // headers: {"Content-Type": "application/json"}
+        })
+    .then((response) => { 
+        console.log(response);
+        return response.json(); 
+    })
+    .then((data) => {
+        console.log(data.imageUrl);
+        let imageUrl = response.json.imageUrl;
+/*         if(response.json.processed === true) {
+            document.getElementById(resizedimage).src = imageUrl;
+            isResolved =  true;
+            console.log("image resolved");
+            clearInterval(refreshIntervalId);
+        } else {
+            isResolved = false;
+            console.log("image still not resolved");
+        }  */
+        document.getElementById("resultlabel").innerHTML = resolved;
+        console.log("called end interval");
+        //clearInterval(refreshIntervalId);
+    }).catch(err=>console.log(err));
+
+    if(document.getElementById("resultlabel").innerHTML === nonResolved) {
+        console.log("Sent status update fetch");
+        const imageid = localStorage.getItem("imageid");       
+        const urlGetStatus = "http://127.0.01:3123/api/status/" + imageid;
+        console.log("Status request sent to: " + urlGetStatus )
+        fetch(urlGetStatus, 
+            {
+                nethod: "GET",
+               // headers: {"Content-Type": "application/json"}
+            })
+            .then((response) => { 
+                console.log(response);
+                return response.json(); 
+            })
+            .then((data) => {
+                console.log(data.status);
+                document.getElementById("resultlabel").innerHTML = data.status;
+
+            }).catch(err=>console.log(err));
+    }
+
+
+/*     let imageUrl = response.json.imageUrl;
     if(response.json.processed === true) {
         document.getElementById(resizedimage).src = imageUrl;
         isResolved =  true;
@@ -52,12 +98,13 @@ async function loadImage(refreshIntervalId){
     //console.log(resImage);
     //resImage.src = 'https://im-homework.s3.amazonaws.com/1678397069238_dfh5w7y-54c2d9d9-2b4f-4d3c-8539-722612b3f03b.jpg';
     console.log("called");
-    clearInterval(refreshIntervalId);
+    clearInterval(refreshIntervalId); */
 }
 
 async function waitForImage(){
     console.log('wait results');
     //let refreshIntervalId = setInterval(function(){loadImage(refreshIntervalId)}, 1000);
+    loadImage('dummyInterval');
     
 }
 

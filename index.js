@@ -24,15 +24,17 @@ const apiRouter = require(path.join(__dirname, 'routes', 'api'));
 const upload = multer({storage: fileStorage});
 const multipleUpload = upload.fields([{name: 'uploadimage', maxCount: 5}]); //multiple file selects in same uploadimage input of type multipart/form-data
  */
-app.use(express.json());
 
- app.use((req, res, next)=>{  //using REST, so just in case we have different ports and such...
-    res.setHeader('Access-Control-Allow-Origin', '*');  //not expecting attacks on image uploading website
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+app.use((req, res, next)=>{  //using REST, so just in case we have different ports and such...
+    res.setHeader('Access-Control-Allow-Origin', '*, 127.0.0.1:3123');  //not expecting attacks on image uploading website
+    res.setHeader('Access-Control-Allow-Methods', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Origin, X-API-KEY, X-Requested-With, Accept, Access-Control-Request-Method, Access-Control-Request-Headers');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    //res.setHeader('HTTP/1.1 200 OK')
     next();
 }); 
- 
+app.use(express.json());
+
 //app.use(multer({dest: path.join(__dirname, 'tempimages')}).single('uploadimage')); //works!
 //app.use(multer({storage: fileStorage}).single('uploadimage'));  //works also
 
