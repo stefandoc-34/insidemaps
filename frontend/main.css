@@ -1,0 +1,40 @@
+body {
+    padding: 50px;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+     background-color: #bec2c5;
+  }
+  
+
+#parentdiv {
+    position: relative;
+ }
+ 
+ #page1 {
+    position: absolute;
+    top: 0;
+ }
+ 
+ #page2 {
+    position: absolute;
+    top: 0;
+ }
+ 
+ #navdiv {
+   position: absolute;
+   bottom: 0;
+ }
+ 
+ #page3 {
+  position: absolute;
+  top: 0;
+}
+ 
+  h1 {
+      color: #6231d4;
+      font-family: Arial, Helvetica, sans-serif;
+  }
+  
+  a {
+    color: #00B7FF;
+  }
+  

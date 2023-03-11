@@ -1,0 +1,64 @@
+<!-- thanks to https://codepen.io/cassandraPaige/pen/ZEYmMJg -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Resize Webapp</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Tangerine">
+    <link rel="stylesheet" href="main.css">
+
+   
+</head>
+<body>
+	<script src="main.js" defer></script>
+	<h1>
+        Web service for resizing images
+    </h1>
+	<div id="parentdiv">
+	     <div id="page1" class="page">
+	     <p> Please upload your image and choose how to resize it </p>
+	     <iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
+	       <form id="upload-image-form" action="http://127.0.0.1:3123/api/images/" target="dummyframe" method="post"  encType="multipart/form-data">
+           <p><input type="file" id="uploadimage" name="uploadimage" onChange="onFileInputChange()" multiple ></input></p>
+	       <input type="hidden" id="imageid" name="imageid"></input>
+	       <p>
+           <input type="radio" id="resolution" name="resolution" value="1"></input>
+           <label for="resolution1">100x100</label><br>
+           <input type="radio" id="resolution" name="resolution" value="2"></input>
+           <label for="resolution2">300x300</label><br>
+           <input type="radio" id="resolution" name="resolution" value="3"></input>
+           <label for="resolution3">500x500</label> 
+	       </p>
+	       <!--<p><button type="submit" id="bla" name="bla" onSubmit="onFormSubmitted()">Submiit!</button></p>-->
+         <p><button type="submit" id="submitbutton" name="uploadimage">Submiit!</button></p>
+	     
+       </div>
+         <p></p><p></p>
+       
+       
+       <div id="page2" style="visibility: hidden" class="page">
+           Results
+           <div id="resultdiv">
+                <img id="resizedimage" src="" alt="Image">
+          </div>
+       </div>
+
+
+
+       <div id="page3" style="visibility: hidden" class="page">
+           This is a homework web project
+     
+     
+       </div>
+</div>
+<div id="navdiv">                 
+<p><button type="button" id="home" name="home">Home</button></p></p>
+<p><button type="button" id="results" name="results">Go to results</button></p></p>
+<p><button type="button" id="about" name="about">Go to about</button></p></p>
+<p id="showimageid"> </p>
+</div>
+
+ 
+</body>
+</html>
