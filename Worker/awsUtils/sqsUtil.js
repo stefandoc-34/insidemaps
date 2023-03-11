@@ -1,5 +1,6 @@
+const path = require('path');
 const {SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand} = require('@aws-sdk/client-sqs');
-const {configObject} = require('./credentials');
+const {configObject} = require(path.join(__dirname, 'credentials'));
 
 const sqsClient = new SQSClient(configObject);
 const queueUrl = 'https://sqs.us-east-1.amazonaws.com/799513362811/im-homework';
@@ -70,7 +71,7 @@ module.exports.pollMessages = async (isFailedQueue)=>{
 	}
 };
 //pollMessages();
-//sendMessageToQueue("{imageUrl: 'imageUrl', resolution: 2, imageId: 'imageId', processed: false}");
+//sendMessageToQueue("{imageName: 'imageName', resolution: 2, imageId: 'imageId', processed: false}");
 
 //setInterval(pollMessages, 9000);
 

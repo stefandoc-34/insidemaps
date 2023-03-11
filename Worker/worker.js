@@ -3,8 +3,8 @@ const sharp = require('sharp');
 const fs = require('fs');
 const util = require('util');
 const axios = require('axios');
-const s3Controller = require(path.join(__dirname, 's3'));
-const sqsUtils = require(path.join(__dirname, 'sqsUtil'));
+const s3Controller = require(path.join(__dirname, 'awsUtils', 's3'));
+const sqsUtils = require(path.join(__dirname, 'awsUtils', 'sqsUtil'));
 const serverUrl = '127.0.0.1:3123';
 
 const asyncReadFile = util.promisify(fs.readFile);
@@ -52,38 +52,41 @@ async function processImagesIfAvailable() {
         
         let rxDataJs = {};
         rxDataJs = JSON.parse(rxData); //no need for try-catch here, cause now we have it everywhere
-        console.log('Received RxData are: '+ rxDataJs.imageUrl + ' ' + rxDataJs.resolution + ' ' + rxDataJs.imageId + ' ' + rxDataJs.processed );
+        console.log('Received RxData are: '+ rxDataJs.imageName + ' ' + rxDataJs.resolution + ' ' + rxDataJs.imageId + ' ' + rxDataJs.processed );
         if(rxDataJs.processed == true) {
             console.log('Picked up already processed task somehow ' + rxDataJs);
             return;
         }             
-        const imageNameBeforeResize = rxDataJs.imageUrl;
+        const imageNameBeforeResize = rxDataJs.imageName;
         const extension = path.extname(imageNameBeforeResize);
         //!War7  update server with info that file is 'resizing'
         
         try {
 
              const imageNameAfterResize = 'RESIZED' + imageNameBeforeResize;
-             const filepath = path.join(__dirname, 'tempimages');
+
+             const dirPath = path.join(__dirname, 'tempimages');
+             const fullImagePathBeforeResize = path.join(__dirname, 'tempimages', imageNameBeforeResize);
+             const fullImagePathAfterResize = path.join(__dirname, 'tempimages', imageNameAfterResize);
              console.log('About to read from S3 to resize');
-             await  s3Controller.readFile( filepath, imageNameBeforeResize);
+             await  s3Controller.readFile( dirPath, imageNameBeforeResize);
+
              //resize image
              console.log('About to call resizeImage');
-             const resizingResult = await resizeImage( filepath + '\\' + imageNameBeforeResize, filepath + '\\' + imageNameAfterResize, rxDataJs.resolution);
-     
+             const resizingResult = await resizeImage( fullImagePathBeforeResize, fullImagePathAfterResize, rxDataJs.resolution);
+
+             await s3Controller.uploadFile(fullImagePathAfterResize, rxDataJs.imageId + extension);
              
-             await s3Controller.uploadResizedFile(filepath, imageNameAfterResize, rxDataJs.imageId + extension);
-             
-             //the imageUrl needs some data sanitization: !War1
+             //the imageName needs some data sanitization: !War1
              //sending messages to active queue is processing is done, to failed queue if the processing failed
      
              const destinationUrl = 'http://' + serverUrl + '/api/images/' + rxDataJs.imageId;
-             const processedImageJson = {imageUrl:  imageNameAfterResize, resolution: rxDataJs.resolution, processed: true};
+             const processedImageJson = {imageName:  imageNameAfterResize, resolution: rxDataJs.resolution, processed: true};
              console.log('Resized file uploaded ' + JSON.stringify(processedImageJson) + ' from local dest: ' + destinationUrl );
              await axios.put(destinationUrl, processedImageJson);
         } catch (err) {
             console.log('File handling and resizing error' + err);
-             await s3Controller.uploadResizedFile(path.join(__dirname, 'uploaderror.png'), '', rxDataJs.imageId + extension); 
+             await s3Controller.uploadFile(path.join(__dirname, 'uploaderror.png'), '', rxDataJs.imageId + extension); 
         }
     } catch (err) {
         console.log(err);

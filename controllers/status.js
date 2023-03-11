@@ -33,12 +33,12 @@ module.exports.getStatus = (req, res, next) => {
 
 module.exports.putResizedImage = (req, res, next) => {
     console.log(req.params.imageid);
-    //expecting not the message: {"imageUrl": "imageUrlValue", "resolution": "3", "imageId": "imageIdValue", "processed": "false"}
-    //but: {"imageUrl": "imageUrl", "resolution": "1", "processed": "false"}
-    console.log(req.body.imageUrl);
+    //expecting not the message: {"imageName": "imageNameValue", "resolution": "3", "imageId": "imageIdValue", "processed": "false"}
+    //but: {"imageName": "imageName", "resolution": "1", "processed": "false"}
+    console.log(req.body.imageName);
     console.log(req.body.processed);
     const imageId = req.params.imageid;
-    const imageUrl = req.body.imageUrl;
+    const imageName = req.body.imageName;
     const resolution = req.body.resolution;
     const processed = req.body.processed;
     if(processed !== true) { 
@@ -47,7 +47,7 @@ module.exports.putResizedImage = (req, res, next) => {
         return;
     }
 
-    s3Controller.readFile( path.join(__dirname, '..', 'tempimages'), imageUrl);
+    s3Controller.readFile( path.join(__dirname, '..', 'tempimages'), imageName);
 
     //res.sendFile(path.join(__dirname, '..', 'frontend', 'build','index.html'));
     

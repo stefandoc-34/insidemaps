@@ -28,7 +28,7 @@ module.exports.getResizedImage = (req, res, next) => {
     
 };
 
-module.exports.postUpload = async (req, res, next) => {
+module.exports.postUpload = (req, res, next) => {
     //expecting possible multiple files here processed by multer in index.js
     //res.sendFile(path.join(__dirname, '..', 'frontend', 'build','index.html'));
 /*     if(req.files) {
@@ -50,11 +50,16 @@ module.exports.postUpload = async (req, res, next) => {
         const imageid = req.body.imageid;
         const resolution = req.body.resolution;
         if(!imageid)  {
-            res.status(500).json({message: 'error in uploading files to server'});
+            res.status(422).json({message: 'error in uploading files to server'});
         }
         console.log(req.files);
         //const filename = req.files.uploadimage[0].originalname;
         const filename = req.files.uploadimage[0].filename; //full new filename
+        console.log('upload ext: ' + path.extname(filename));
+        if(path.extname(filename) != '.jpg' && path.extname(filename) != '.png' ) {            
+           return res.status(422).json({message: 'file with wrong extension uploaded, only jpg and png allowed'});
+        }
+        
         let filepath = req.files.uploadimage[0].path;
         filepath = filepath.replaceAll('\\', '\\\\');
         console.log('Filename is: ' + filename + ' filepath: ' + filepath);
@@ -66,17 +71,24 @@ module.exports.postUpload = async (req, res, next) => {
           });
         resizingJob.save();
         console.log('Files info successfully uploaded to DB');
-         s3Controller.uploadFile(filepath, filename).then(result => {
+         s3Controller.uploadFile(filepath, filename)
+         .then(result => {
             console.log('Upload result ' + result);
             console.log('Uploaded file to S3 with name: '+ filename + ' and path: ' +  filepath);
             //the data should be extracted as a global file maybe  !War2
-            const imagedata =  `{"imageUrl": "${filename}", "resolution": "${resolution}", "imageId": "${imageid}", "processed": "false"}`;
+            const imagedata =  `{"imageName": "${filename}", "resolution": "${resolution}", "imageId": "${imageid}", "processed": "false"}`;
             sqsUtils.sendMessageToQueue(false, imagedata);
-            ResizingJob.findOneAndUpdate({imageid: imageid}, {status: 'uploaded'}).then(()=>{
+            ResizingJob.findOneAndUpdate({imageid: imageid}, {status: 'uploaded'})
+            .then(()=>{
                 res.status(200).json({message: 'submitted'});
-            }).catch(err=>{console.log(err); res.status(500).json({message: err + 'some error happened'});});
+            })
+            .catch(err=>{
+                console.log(err); 
+                res.status(500).json({message: err + 'some error happened'});
+            });
             //res.send("File uploaded on S3!");
-        }).catch(err=> {
+        })
+        .catch(err=> {
             console.log(err);
             res.status(500).json({message: err + 'some error happened'});
             //res.send('Some error happened, file could not be uploaded');
@@ -84,7 +96,7 @@ module.exports.postUpload = async (req, res, next) => {
         
     } else {
         //res.send("Files upload error, file cannot be found");
-        res.status(500).json({message: 'error - no files received'});
+        res.status(422).json({message: 'error - no files received'});
     }
     //res.sendFile(path.join(__dirname, '..', 'frontend', 'build','index.html'));
  /**/
@@ -93,12 +105,12 @@ module.exports.postUpload = async (req, res, next) => {
 module.exports.putResizedImage = (req, res, next) => {
     //more checks needed here (what if someone uses put that is not a Worker?)!   //!War5
     console.log(req.params.imageid);
-    //expecting not the message: {"imageUrl": "imageUrlValue", "resolution": "3", "imageId": "imageIdValue", "processed": "false"}
-    //but: {"imageUrl": "imageUrl", "resolution": "1", "processed": "false"}
-    console.log("Put arrived " + req.body.imageUrl);
+    //expecting not the message: {"imageName": "imageNameValue", "resolution": "3", "imageId": "imageIdValue", "processed": "false"}
+    //but: {"imageName": "imageName", "resolution": "1", "processed": "false"}
+    console.log("Put arrived " + req.body.imageName);
     console.log(req.body.processed);
     const imageId = req.params.imageid;
-    const imageUrl = req.body.imageUrl;
+    const imageName = req.body.imageName;
     const resolution = req.body.resolution;
     const processed = req.body.processed;
     if(processed !== true) { 
@@ -106,13 +118,15 @@ module.exports.putResizedImage = (req, res, next) => {
         //throw new Error('Problem in comm.');
         return;
     }
-    //s3Controller.readFile( path.join(__dirname, '..', 'tempimages'), imageUrl);
+    //s3Controller.readFile( path.join(__dirname, '..', 'tempimages'), imageName);
     s3Controller.findFileBasedOnIdInS3Files(req.params.imageid)
     .then( filename => {
         if(!filename) {
             res.status(200).json({message: 'file not found'});
         }
-        s3Controller.readFile( path.join(__dirname, '..', 'tempimages'), filename) //this is to store the file on the server, but should be removed !War4
+        const filepath = path.join(__dirname, '..', 'tempimages', filename); // + '\\' + filename
+        console.log('Stored filepath is ' + filepath);
+        s3Controller.readFile(filepath, filename) //this is to store the file on the server, but should be removed !War4
         .then(()=> { 
             ResizingJob.findOneAndUpdate({imageid: req.params.imageid}, {status: 'resized'})
             .then(()=>{
@@ -145,7 +159,7 @@ module.exports.putResizedImage = (req, res, next) => {
      for(el in objs.Contents) {
       console.log(objs.Contents[el].Key);
       if(imageid === path.basename(objs.Contents[el].Key)) {
-        return imageid + path.extname(imageUrl);
+        return imageid + path.extname(imageName);
       }
      }
      

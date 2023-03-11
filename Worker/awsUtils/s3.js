@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const util = require('util');
-const {configObject} = require(path.join('..', 'credentials'));
+const {configObject} = require(path.join(__dirname, 'credentials'));
 const S3 = require('aws-sdk/clients/s3');
 //const { S3Client, AbortMultipartUploadCommand } = require('@aws-sdk/client-s3');
 
@@ -16,29 +16,28 @@ const secretAccessKey = configObject.credentials.secretAccessKey;
 
 const asyncReadFile = util.promisify(fs.readFile);
 
-module.exports.uploadResizedFile = async (filepath, storedFilename, imageId) => {
-    const fileData = await asyncReadFile(filepath + '\\' + storedFilename );
+module.exports.uploadFile = async (filepath, filename) => {
+    //const fileData = await asyncReadFile(filepath + '\\' + storedFilename );
+    const fileData = await asyncReadFile( filepath );
 
     const uploadParams = {
         Bucket: s3BucketName,
         Body: fileData,
-        //Key: storedFilename,
-        Key: imageId
+        Key: filename
     }
-    //console.log(region + ' ' + accessKeyId + ' ' + secretAccessKey);
-    //console.log( filepath + '  ' + storedFilename);
+    //console.log( filepath + '  ' + filename);
     return await s3.putObject(uploadParams).promise(); 
 };
 
-module.exports.readFile = async (filepath, storedFilename) => {
+module.exports.readFile = async (dirPath, filename) => {
     const downloadParams = {
         Bucket: s3BucketName,
-        Key: storedFilename,
+        Key: filename,
     }
     const result = await s3.getObject( downloadParams ).promise(); 
     console.log(result);
     console.log(result.ContentLength);
     console.log(result.Body);
-    //fs.writeFile(filepath + '\\' + 'Resized_'  + storedFilename, result.Body, (err)=>{console.log(err);});
-    await fs.writeFile(filepath + '\\' + storedFilename, result.Body, (err)=>{console.log(err);});
+    //fs.writeFile(dirPath + '\\' + 'Resized_'  + filename, result.Body, (err)=>{console.log(err);});
+    await fs.writeFile(dirPath + '\\' + filename, result.Body, (err)=>{console.log(err);});
 };

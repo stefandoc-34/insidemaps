@@ -26,11 +26,12 @@ const multipleUpload = upload.fields([{name: 'uploadimage', maxCount: 5}]); //mu
  */
 app.use(express.json());
 
-/* app.use((req, res, next)=>{  //using REST, so just in case we have different ports and such...
+ app.use((req, res, next)=>{  //using REST, so just in case we have different ports and such...
     res.setHeader('Access-Control-Allow-Origin', '*');  //not expecting attacks on image uploading website
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-}); */
+    next();
+}); 
  
 //app.use(multer({dest: path.join(__dirname, 'tempimages')}).single('uploadimage')); //works!
 //app.use(multer({storage: fileStorage}).single('uploadimage'));  //works also
