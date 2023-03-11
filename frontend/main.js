@@ -31,7 +31,33 @@ function hideAllPages() {
 const resolved = 'Resolved image';
 const nonResolved = 'Not resolved';
 
-async function loadImage(refreshIntervalId){
+async function getImageStatus(refreshIntervalId){
+    console.log("Sent status update fetch");
+    const imageid = localStorage.getItem("imageid");       
+    const urlGetStatus = "http://127.0.01:3123/api/status/" + imageid;
+    console.log("Status request sent to: " + urlGetStatus )
+    fetch(urlGetStatus, 
+        {
+            nethod: "GET",
+           // headers: {"Content-Type": "application/json"}
+        })
+        .then((response) => { 
+            console.log(response);
+            return response.json(); 
+        })
+        .then((data) => {
+            console.log(data.status);
+            document.getElementById("resultlabel").innerHTML = data.status;
+            if(data.status == 'resized') {
+                clearInterval(refreshIntervalId);
+                console.log("called end interval");
+                loadImage('dummyIntervalValue');
+            }
+
+        }).catch(err=>console.log(err));
+}
+
+async function loadImage(){
     const imageid = localStorage.getItem("imageid");
 	console.log('Image id is' + imageid);
 	const urlGetImage = "http://127.0.0.1:3123/api/images/" + imageid;
@@ -46,8 +72,11 @@ async function loadImage(refreshIntervalId){
         return response.json(); 
     })
     .then((data) => {
-        console.log(data.imageUrl);
-        let imageUrl = response.json.imageUrl;
+        console.log(data.url);
+        let imageUrl = data.url;
+        if(imageUrl) {
+            document.getElementById('resizedimage').src = imageUrl;
+        }
 /*         if(response.json.processed === true) {
             document.getElementById(resizedimage).src = imageUrl;
             isResolved =  true;
@@ -57,31 +86,8 @@ async function loadImage(refreshIntervalId){
             isResolved = false;
             console.log("image still not resolved");
         }  */
-        document.getElementById("resultlabel").innerHTML = resolved;
-        console.log("called end interval");
-        //clearInterval(refreshIntervalId);
+        
     }).catch(err=>console.log(err));
-
-    if(document.getElementById("resultlabel").innerHTML === nonResolved) {
-        console.log("Sent status update fetch");
-        const imageid = localStorage.getItem("imageid");       
-        const urlGetStatus = "http://127.0.01:3123/api/status/" + imageid;
-        console.log("Status request sent to: " + urlGetStatus )
-        fetch(urlGetStatus, 
-            {
-                nethod: "GET",
-               // headers: {"Content-Type": "application/json"}
-            })
-            .then((response) => { 
-                console.log(response);
-                return response.json(); 
-            })
-            .then((data) => {
-                console.log(data.status);
-                document.getElementById("resultlabel").innerHTML = data.status;
-
-            }).catch(err=>console.log(err));
-    }
 
 
 /*     let imageUrl = response.json.imageUrl;
@@ -103,8 +109,8 @@ async function loadImage(refreshIntervalId){
 
 async function waitForImage(){
     console.log('wait results');
-    //let refreshIntervalId = setInterval(function(){loadImage(refreshIntervalId)}, 1000);
-    loadImage('dummyInterval');
+    let refreshIntervalId = setInterval(function(){getImageStatus(refreshIntervalId)}, 1000);
+    //getImageStatus(refreshIntervalId)
     
 }
 

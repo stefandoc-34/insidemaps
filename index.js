@@ -26,7 +26,7 @@ const multipleUpload = upload.fields([{name: 'uploadimage', maxCount: 5}]); //mu
  */
 
 app.use((req, res, next)=>{  //using REST, so just in case we have different ports and such...
-    res.setHeader('Access-Control-Allow-Origin', '*, 127.0.0.1:3123');  //not expecting attacks on image uploading website
+    res.setHeader('Access-Control-Allow-Origin', '*');  //not expecting attacks on image uploading website
     res.setHeader('Access-Control-Allow-Methods', '*');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Origin, X-API-KEY, X-Requested-With, Accept, Access-Control-Request-Method, Access-Control-Request-Headers');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
